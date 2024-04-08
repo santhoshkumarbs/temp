@@ -1,35 +1,51 @@
 plugins {
     id 'java'
+    id "no.nils.wsdl2java" version "0.12" // Check for the latest version of the plugin
 }
+
+group = 'com.example'
+version = '0.1.0-SNAPSHOT'
+sourceCompatibility = '11'
 
 repositories {
     mavenCentral()
 }
 
-configurations {
-    jaxb
-}
-
 dependencies {
-    // Use Jakarta XML Web Services for Java 11 compatibility
-    implementation 'jakarta.xml.ws:jakarta.xml.ws-api:2.3.3'
-    implementation 'com.sun.xml.ws:jaxws-ri:2.3.3'
-    implementation 'jakarta.jws:jakarta.jws-api:1.1.1'
-
-    // Use Jakarta XML Binding for Java 11 compatibility
+    // Apache CXF dependencies for SOAP web services
+    implementation 'org.apache.cxf:cxf-rt-frontend-jaxws:3.4.5' // Adjust to the latest compatible version
+    implementation 'org.apache.cxf:cxf-rt-transports-http:3.4.5'
+    
+    // JAXB API and Runtime for Java 11 and newer
     implementation 'jakarta.xml.bind:jakarta.xml.bind-api:2.3.3'
-    jaxb 'org.glassfish.jaxb:jaxb-xjc:2.3.5'
-    jaxb 'org.glassfish.jaxb:jaxb-runtime:2.3.5'
-
-    // Use Jakarta Activation instead of javax.activation for Java 11 compatibility
-    jaxb 'jakarta.activation:jakarta.activation-api:1.2.2'
+    implementation 'org.glassfish.jaxb:jaxb-runtime:2.3.3'
+    
+    // Any other dependencies your project requires
 }
 
-task generateJavaFromWsdl {
-    doLast {
-        ant.taskdef(name: 'xjc', classname: 'com.sun.tools.xjc.XJCTask', classpath: configurations.jaxb.asPath)
-        ant.xjc(destdir: 'src/main/java', schema: 'src/main/resources/wsdl/example.wsdl', package: 'com.example.client.generated')
+// Configure wsdl2java plugin tasks
+wsdl2java {
+    wsdlsToGenerate = [
+        ['-p', 'com.example.client.generated', '-autoNameResolution', "$projectDir/src/main/resources/yourService.wsdl"]
+    ]
+    generatedWsdlDir = file("$projectDir/src/main/java")
+}
+
+// Ensure that the generated source code is included in the project's source sets
+sourceSets {
+    main {
+        java {
+            srcDir 'src/main/java'
+        }
     }
 }
 
-compileJava.dependsOn generateJavaFromWsdl
+// Example task to compile the generated Java classes (this is automatically handled by Gradle's Java plugin)
+compileJava {
+    dependsOn wsdl2java
+}
+
+// Example of how to run a main class, if needed
+application {
+    mainClassName = 'com.example.MainClass'
+}
