@@ -1,34 +1,41 @@
 plugins {
     id 'java'
-    id "no.nils.wsdl2java" version "0.12" // Check for the latest version of the plugin
 }
 
 group = 'com.example'
-version = '0.1.0-SNAPSHOT'
+version = '1.0-SNAPSHOT'
+
 sourceCompatibility = '11'
 
 repositories {
     mavenCentral()
 }
 
-dependencies {
-    // Apache CXF dependencies for SOAP web services
-    implementation 'org.apache.cxf:cxf-rt-frontend-jaxws:3.4.5' // Adjust to the latest compatible version
-    implementation 'org.apache.cxf:cxf-rt-transports-http:3.4.5'
-    
-    // JAXB API and Runtime for Java 11 and newer
-    implementation 'jakarta.xml.bind:jakarta.xml.bind-api:2.3.3'
-    implementation 'org.glassfish.jaxb:jaxb-runtime:2.3.3'
-    
-    // Any other dependencies your project requires
+configurations {
+    cxf
 }
 
-// Configure wsdl2java plugin tasks
-wsdl2java {
-    wsdlsToGenerate = [
-        ['-p', 'com.example.client.generated', '-autoNameResolution', "$projectDir/src/main/resources/yourService.wsdl"]
+dependencies {
+    // CXF dependencies needed for wsdl2java
+    cxf "org.apache.cxf:cxf-tools-wsdlto-core:3.4.5"
+    cxf "org.apache.cxf:cxf-tools-wsdlto-databinding-jaxb:3.4.5"
+    cxf "org.apache.cxf:cxf-tools-wsdlto-frontend-jaxws:3.4.5"
+
+    // Your project's other dependencies...
+    implementation 'jakarta.xml.bind:jakarta.xml.bind-api:2.3.3'
+    implementation 'org.glassfish.jaxb:jaxb-runtime:2.3.3'
+}
+
+// Custom task for generating Java classes from WSDL using wsdl2java
+task wsdl2Java(type: JavaExec) {
+    main = 'org.apache.cxf.tools.wsdlto.WSDLToJava'
+    classpath = configurations.cxf
+    args = [
+        '-d', 'src/main/java',
+        '-p', 'com.example.client.generated',
+        '-verbose',
+        'src/main/resources/yourService.wsdl' // Path to your WSDL file
     ]
-    generatedWsdlDir = file("$projectDir/src/main/java")
 }
 
 // Ensure that the generated source code is included in the project's source sets
@@ -40,12 +47,4 @@ sourceSets {
     }
 }
 
-// Example task to compile the generated Java classes (this is automatically handled by Gradle's Java plugin)
-compileJava {
-    dependsOn wsdl2java
-}
-
-// Example of how to run a main class, if needed
-application {
-    mainClassName = 'com.example.MainClass'
-}
+compileJava.dependsOn wsdl2Java
