@@ -11,13 +11,18 @@ configurations {
 }
 
 dependencies {
+    // Use Jakarta XML Web Services for Java 11 compatibility
     implementation 'jakarta.xml.ws:jakarta.xml.ws-api:2.3.3'
     implementation 'com.sun.xml.ws:jaxws-ri:2.3.3'
     implementation 'jakarta.jws:jakarta.jws-api:1.1.1'
+
+    // Use Jakarta XML Binding for Java 11 compatibility
     implementation 'jakarta.xml.bind:jakarta.xml.bind-api:2.3.3'
-    jaxb 'com.sun.xml.bind:jaxb-xjc:2.3.5'
-    jaxb 'com.sun.xml.bind:jaxb-impl:2.3.5'
-    jaxb 'javax.activation:activation:1.1.1'
+    jaxb 'org.glassfish.jaxb:jaxb-xjc:2.3.5'
+    jaxb 'org.glassfish.jaxb:jaxb-runtime:2.3.5'
+
+    // Use Jakarta Activation instead of javax.activation for Java 11 compatibility
+    jaxb 'jakarta.activation:jakarta.activation-api:1.2.2'
 }
 
 task generateJavaFromWsdl {
