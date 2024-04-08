@@ -3,8 +3,7 @@ plugins {
 }
 
 group = 'com.example'
-version = '1.0-SNAPSHOT'
-
+version = '1.0.0'
 sourceCompatibility = '11'
 
 repositories {
@@ -16,32 +15,24 @@ configurations {
 }
 
 dependencies {
-    // Update CXF dependencies to a version that supports Jakarta EE
-    cxf "org.apache.cxf:cxf-tools-wsdlto-core:3.5.0" // Adjust the version as necessary
-    cxf "org.apache.cxf:cxf-tools-wsdlto-databinding-jaxb:3.5.0"
-    cxf "org.apache.cxf:cxf-tools-wsdlto-frontend-jaxws:3.5.0"
-
-    // Dependencies for Jakarta XML Binding
-    implementation 'jakarta.xml.bind:jakarta.xml.bind-api:3.0.1'
-    implementation 'org.glassfish.jaxb:jaxb-runtime:3.0.1'
-
-    // Ensure other dependencies your project requires are also using Jakarta namespaces
+    // Add Apache CXF dependencies for wsdl2java
+    cxf "org.apache.cxf:cxf-tools-wsdlto-core:3.4.3"
+    cxf "org.apache.cxf:cxf-tools-wsdlto-databinding-jaxb:3.4.3"
+    cxf "org.apache.cxf:cxf-tools-wsdlto-frontend-jaxws:3.4.3"
+    // Jakarta XML Binding API for JDK 11+
+    implementation "jakarta.xml.bind:jakarta.xml.bind-api:2.3.3"
+    runtimeOnly "org.glassfish.jaxb:jaxb-runtime:2.3.3"
 }
 
-// Custom task for generating Java classes from WSDL using wsdl2java with Jakarta EE namespace
-task wsdl2Java(type: JavaExec) {
-    main = 'org.apache.cxf.tools.wsdlto.WSDLToJava'
-    classpath = configurations.cxf
-    args = [
-        '-d', 'src/main/java',
-        '-p', 'com.example.client.generated',
-        '-target', '2.3', // Specify the target as 2.3 for Jakarta
-        '-verbose',
-        'src/main/resources/yourService.wsdl' // Path to your WSDL file
-    ]
+// Task to generate Java classes from WSDL
+task generateJavaFromWsdl {
+    doLast {
+        ant.taskdef(name: 'wsdl2java', classname: 'org.apache.cxf.tools.wsdlto.WSDLToJava', classpath: configurations.cxf.asPath)
+        ant.wsdl2java('-d', 'src/main/java', '-client', 'src/main/resources/wsdl/yourService.wsdl')
+    }
 }
 
-// Ensure that the generated source code is included in the project's source sets
+// Make sure the generated sources are compiled
 sourceSets {
     main {
         java {
@@ -50,4 +41,5 @@ sourceSets {
     }
 }
 
-compileJava.dependsOn wsdl2Java
+// Ensure compilation depends on Java classes being generated from WSDL
+compileJava.dependsOn generateJavaFromWsdl
