@@ -1,0 +1,30 @@
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    jaxb
+}
+
+dependencies {
+    implementation 'jakarta.xml.ws:jakarta.xml.ws-api:2.3.3'
+    implementation 'com.sun.xml.ws:jaxws-ri:2.3.3'
+    implementation 'jakarta.jws:jakarta.jws-api:1.1.1'
+    implementation 'jakarta.xml.bind:jakarta.xml.bind-api:2.3.3'
+    jaxb 'com.sun.xml.bind:jaxb-xjc:2.3.5'
+    jaxb 'com.sun.xml.bind:jaxb-impl:2.3.5'
+    jaxb 'javax.activation:activation:1.1.1'
+}
+
+task generateJavaFromWsdl {
+    doLast {
+        ant.taskdef(name: 'xjc', classname: 'com.sun.tools.xjc.XJCTask', classpath: configurations.jaxb.asPath)
+        ant.xjc(destdir: 'src/main/java', schema: 'src/main/resources/wsdl/example.wsdl', package: 'com.example.client.generated')
+    }
+}
+
+compileJava.dependsOn generateJavaFromWsdl
